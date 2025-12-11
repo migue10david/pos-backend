@@ -1,0 +1,41 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { OrderService } from './order.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+
+@Controller('order')
+export class OrderController {
+  constructor(private readonly orderService: OrderService) {}
+
+  @Get()
+  getAllOrders() {
+    return this.orderService.getAllOrders();
+  }
+
+  @UseGuards(JwtGuard)
+  @Post()
+  createOrder(@Body() dto: CreateOrderDto, @CurrentUser('id') id: string) {
+    return this.orderService.create(dto, id);
+  }
+
+  @Get(':id')
+  getOrderById(@Param('id') id: string) {
+    return this.orderService.getOrderById(id);
+  }
+
+  @Patch(':id')
+  updateOrderStatus(@Param('id') id: string) {
+    return this.orderService.updateOrderStatus(id);
+  }
+}

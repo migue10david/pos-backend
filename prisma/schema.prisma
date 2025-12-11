@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  password String
+  email    String @unique
+  role     Role   @default(USER)
+
+  orders Order[]
+}
+
+model Product {
+  id    String @id @default(uuid())
+  name  String
+  code  String @unique
+  price Float
+  cost  Float
+  stock Int
+
+  OrderItems OrderItem[]
+  movements  InventoryMovement[]
+}
+
+enum MovementType {
+  IN
+  OUT
+}
+
+model InventoryMovement {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  type      MovementType
+  quantity  Int
+  unitCost  Float?
+  createdAt DateTime     @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  quantity Int
+  price    Float
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  status    OrderStatus @default(PENDING)
+  items     OrderItem[]
+  total     Float
+  payMethod PayMethod
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+}
+
+enum PayMethod {
+  CASH
+  TRANSFER
+}
