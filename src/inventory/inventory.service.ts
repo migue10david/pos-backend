@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,8 +16,31 @@ import { Filters, Pagination } from 'src/utils/QueryBuilder';
 export class InventoryService {
   constructor(
     private readonly prismaService: PrismaService,
+     @Inject(forwardRef(() => ProductService))
     private readonly productService: ProductService,
   ) {}
+
+async createMovement(dto: CreateInventoryDto) {
+    const product = await this.prismaService.product.findUnique({
+      where: { id: dto.productId },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+
+    if (dto.type === MovementType.OUT && product.stock < dto.quantity) {
+      throw new BadRequestException(`Not enough stock for product ${product.name}. Available ${product.stock}`);
+    }
+
+    const movement = await this.prismaService.inventoryMovement.create({
+      data: {
+        productId: dto.productId,
+        type: dto.type,
+        quantity: dto.quantity,
+        unitCost: dto.unitCost ?? product.cost,
+      }
+    });
+    console.log('Inventory movement created:', movement);
+    return movement;
+  }
 
   async createMovementAndApplyStock(dto: CreateInventoryDto) {
     return this.prismaService.$transaction(async (tx) => {

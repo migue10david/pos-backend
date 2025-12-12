@@ -7,21 +7,33 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Filters, Pagination } from 'src/utils/QueryBuilder';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('inventory')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post()
   create(@Body() createInventoryDto: CreateInventoryDto) {
     return this.inventoryService.createMovementAndApplyStock(
       createInventoryDto,
     );
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('create-movement')
+  createMovement(@Body() createInventoryDto: CreateInventoryDto) {
+    return this.inventoryService.createMovement(createInventoryDto);
   }
 
   @Get()

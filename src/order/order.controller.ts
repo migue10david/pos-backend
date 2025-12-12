@@ -34,6 +34,7 @@ export class OrderController {
     return this.orderService.getOrderById(id);
   }
 
+  @UseGuards(JwtGuard)
   @Patch(':id')
   updateOrderStatus(@Param('id') id: string) {
     return this.orderService.updateOrderStatus(id);

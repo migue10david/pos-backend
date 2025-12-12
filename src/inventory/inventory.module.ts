@@ -6,6 +6,6 @@ import { ProductService } from 'src/product/product.service';
 
 @Module({
   controllers: [InventoryController],
-  providers: [InventoryService, PrismaService,ProductService],
+  providers: [InventoryService,ProductService, PrismaService],
 })
 export class InventoryModule {}
