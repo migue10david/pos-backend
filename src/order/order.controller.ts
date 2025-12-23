@@ -8,19 +8,21 @@ import {
   Delete,
   Req,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { Filters, Pagination } from 'src/utils/QueryBuilder';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
-  getAllOrders() {
-    return this.orderService.getAllOrders();
+  getAllOrders(@Query() pagination: Pagination, @Query() filters: Filters) {
+    return this.orderService.getAllOrders({ pagination, filters });
   }
 
   @Get('total-day')

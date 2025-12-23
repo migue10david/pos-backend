@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ProductService } from 'src/product/product.service';
 import { InventoryService } from 'src/inventory/inventory.service';
+import { Filters, Pagination } from 'src/utils/QueryBuilder';
 
 @Injectable()
 export class OrderService {
@@ -16,8 +17,49 @@ export class OrderService {
     private readonly inventoryService: InventoryService,
   ) {}
 
-  async getAllOrders() {
-    return this.prisma.order.findMany();
+  async getAllOrders({pagination,filters}: {pagination?: Pagination, filters?: Filters}) {
+    const page = pagination?.page && pagination.page > 0 ? pagination.page : 1;
+    const limit =
+      pagination?.limit && pagination.limit > 0
+        ? Math.min(pagination.limit, 100)
+        : 20;
+
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (filters?.createdAt) {
+      const date = new Date(filters.createdAt);
+      if (isNaN(date.getTime())) {
+        throw new BadRequestException('Invalid date format. Use YYYY-MM-DD.');
+      }
+
+      const startOfDay = new Date(date);
+      startOfDay.setUTCHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(date);
+      endOfDay.setUTCHours(23, 59, 59, 999);
+
+      where.createdAt = {
+        gte: startOfDay,
+        lte: endOfDay,
+      };
+    }
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        skip,
+        take: limit,
+        where,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getTotalMoneyOfDay() {
