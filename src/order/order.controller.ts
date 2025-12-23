@@ -23,6 +23,20 @@ export class OrderController {
     return this.orderService.getAllOrders();
   }
 
+  @Get('total-day')
+  getTotalMoneyOfDay() {
+    return this.orderService.getTotalMoneyOfDay();
+  }
+  @Get('total-month')
+  getTotalMoneyOfMonth() {
+    return this.orderService.getTotalMoneyOfMonth();
+  }
+
+  @Get('popular-products-month')
+  getPopularProductsOfMonth() {
+    return this.orderService.getPopularProductsOfMonth();
+  }
+
   @UseGuards(JwtGuard)
   @Post()
   createOrder(@Body() dto: CreateOrderDto, @CurrentUser('id') id: string) {

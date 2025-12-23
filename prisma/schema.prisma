@@ -59,6 +59,8 @@ model OrderItem {
   price    Float
   orderId  String
   order    Order  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 model Order {
